@@ -1,35 +1,54 @@
 # EAD-PROJECT
 
-Skeleton for the SE4040 group project — a fresh, unmodified starting point
-for the backend, frontend and mobile app. Nothing here is implemented yet;
-each member builds their assigned slice on top of this.
+Skeleton for the SE4040 group project. Each of the three parts starts from
+its real toolchain's own scaffold (`dotnet new webapi`, `npm create vite`,
+Android's Empty Activity template), plus the shared infrastructure, branding
+and config that match the reference build — so every member starts from the
+same look, feel and plumbing instead of reconciling four different styles
+later. The actual features (Controllers, Pages, screens) are added per
+member on their own branch — see `TEAM_SPLIT.md` for who owns what.
 
 ## Layout
 
 ```
 EAD-PROJECT/
-├── backend/SmartMicrogrid/     dotnet new webapi (ASP.NET Core 8, controllers)
-├── frontend/                   npm create vite@latest -- --template react
-└── mobile/EADProject/          Android, Kotlin + Jetpack Compose, Empty Activity
+├── backend/SmartMicrogrid/     ASP.NET Core 8 Web API
+├── frontend/                   React 19 + Vite + Tailwind
+└── mobile/EADProject/          Android, Kotlin + Jetpack Compose
 ```
 
-## One manual step for mobile
+## What's already wired up (so nobody has to redo it)
 
-The Gradle wrapper's binary jar (`gradle/wrapper/gradle-wrapper.jar`) isn't
-included — it can't be hand-written, and generating it needs either Android
-Studio or a local Gradle install. Before `mobile/EADProject` will build:
+**Backend** — MongoDB client + `MongoDbContext`, JWT auth scaffold, CORS,
+Swagger, global exception handling, the account-status filter, and the
+`User` model (needed by that filter). `Program.cs` has `// TODO` markers
+showing exactly where to register your own service and, if you're the one
+who builds `DatabaseInitializer`, where to call it — add your line, don't
+remove anyone else's.
 
-1. Open `mobile/EADProject` in Android Studio.
-2. Let it sync — Android Studio detects the missing wrapper jar and offers
-   to regenerate it automatically. Accept the prompt (or run **File → Sync
-   Project with Gradle Files** if it doesn't appear on its own).
+**Frontend** — Tailwind + the Outfit font, the full shared component kit
+(`PageControls`, `FormControls`, `Icons`, `ConfirmDialog`, `Pagination`),
+`usePagination`, the validation/date/sorting utils, the axios client, and
+the session helpers. `App.jsx` is a placeholder — routing gets wired up once
+Login and `auth/session.js`'s consumer exists.
 
-Everything else — backend and frontend — runs immediately with `dotnet run`
-and `npm install && npm run dev` respectively, no extra setup.
+**Mobile** — the real branding (VoltShare launcher icon, Outfit font,
+theme), `ApiClient`/`SmartGridApi`/`Dtos` (Retrofit), `SessionStore` +
+`SmartGridDbHelper` (SQLite), and the `ApiResult`/`ApiCall` wrapper every
+repository builds on. `ServiceLocator.kt`, `ViewModelFactory.kt` and
+`MainActivity.kt` have `// TODO` markers for wiring in each repository,
+ViewModel and the navigation graph as they're built — same rule: add your
+line, don't remove anyone else's. The Gradle wrapper is included and
+functional (`./gradlew build` works immediately, no Android Studio step
+required first).
+
+Run each part the same way as the real project (see its own README once one
+exists, or the commands above): `dotnet run` for the backend,
+`npm install && npm run dev` for the frontend, and Android Studio or
+`./gradlew` for mobile.
 
 ## Renaming things
 
-- Backend project name: `SmartMicrogrid.Api` (change via find-and-replace if
-  you want something else — nothing else depends on this name yet).
-- Mobile package: `com.example.eadproject` — rename via Android Studio's
-  **Refactor → Rename** on the package, which updates every reference safely.
+- Backend project name: `SmartMicrogrid.Api`.
+- Mobile package: `com.example.smartgrid_mobile` — rename via Android
+  Studio's **Refactor → Rename** on the package if you want something else.

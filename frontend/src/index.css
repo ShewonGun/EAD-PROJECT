@@ -1,111 +1,103 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import "tailwindcss";
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+@theme {
+  /* Outfit is the single typeface for the whole website. */
+  --font-sans: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* Corner radii kept tight; nothing in the UI is pill-shaped. */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 5px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
+/* Smooths the Outfit rendering and keeps long forms from shifting on scroll. */
 body {
-  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scrollbar-gutter: stable;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+/*
+ * Every scrolling area in the console - horizontal (TableWrap's table
+ * container, EnergyFlowCard's chart) or vertical (the sidebar nav, the main
+ * page content, a modal's body, the auth layout) - still scrolls by touch,
+ * trackpad, click-drag or the keyboard. This just stops the browser drawing
+ * a visible scrollbar for any of it, site-wide.
+ */
+.overflow-x-auto,
+.overflow-y-auto,
+.modal-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge */
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.modal-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, current Edge */
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+/*
+ * Every data table in the console (TableWrap in PageControls.jsx) carries this
+ * class. Below the "md" breakpoint it stops being a table at all and becomes a
+ * stack of cards, one per row - a table forced to scroll sideways on a phone
+ * is unreadable, and this is the standard fix: hide the header, turn each row
+ * into a bordered block, and label each cell with the column heading it would
+ * otherwise have lost. The label text comes from the `label` prop on <TD>,
+ * rendered here through the cell's own data-label attribute; a cell with no
+ * label (the actions column - buttons need no caption) is left alone.
+ */
+@media (width < 48rem) {
+  /* TableWrap sets an inline min-width so the table scrolls sideways above
+     this breakpoint; !important is the only way to override an inline style,
+     and without this the "card" below would just be a very wide table cell. */
+  .responsive-table {
+    min-width: 0 !important;
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+  .responsive-table thead {
+    display: none;
   }
-}
-p {
-  margin: 0;
-}
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr {
+    display: block;
+    width: 100%;
+  }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  .responsive-table tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-xs);
+  }
+
+  .responsive-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .responsive-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    text-align: right;
+    border-bottom: 1px solid var(--color-slate-100);
+  }
+
+  .responsive-table td:last-child {
+    border-bottom: none;
+  }
+
+  .responsive-table td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-slate-500);
+  }
 }
