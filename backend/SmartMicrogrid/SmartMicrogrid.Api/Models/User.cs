@@ -15,6 +15,7 @@ namespace SmartMicrogrid.Api.Models
 {
     public class User
     {
+        // Prosumer accounts use the NIC as the stable identity for CRUD operations.
         // NIC number used as the primary key (stored as _id).
         [BsonId]
         public string Nic { get; set; } = string.Empty;
