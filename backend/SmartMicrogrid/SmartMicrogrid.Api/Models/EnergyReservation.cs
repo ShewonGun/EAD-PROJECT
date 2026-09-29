@@ -1,4 +1,4 @@
-﻿/*
+/*
  * File: EnergyReservation.cs
  * Purpose: Represents a prosumer's reservation of an energy booking slot for
  *          energy drop-off or charging. Tracks approval, the secure QR token
