@@ -1,5 +1,5 @@
 /*
- * File: AccountStatus.cs
+ * File: ProsumerAccountStatus.cs
  * Purpose: Lifecycle states of a user account, from registration through
  *          activation, deactivation requests and deactivation.
  * Author:  <your name>

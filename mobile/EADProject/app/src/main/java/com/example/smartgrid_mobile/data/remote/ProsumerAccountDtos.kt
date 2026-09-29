@@ -1,5 +1,5 @@
 /* ============================================================================
- * File        : Dtos.kt
+ * File        : ProsumerAccountDtos.kt
  * Purpose     : Data transfer objects exchanged with the SmartGrid Web API
  *               (authentication and prosumer account management endpoints).
  * Author      : SmartGrid Mobile Team
