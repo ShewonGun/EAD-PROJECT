@@ -10,8 +10,6 @@
  * Author:  Shewon Gunarathne
  * Created: 2026-09-25
  */
-using System.Text;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +17,14 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using SmartMicrogrid.Api.Data;
-using SmartMicrogrid.Api.Filters;
 using SmartMicrogrid.Api.DTOs.Responses;
+using SmartMicrogrid.Api.Filters;
 using SmartMicrogrid.Api.Middleware;
+using SmartMicrogrid.Api.Services;
+using SmartMicrogrid.Api.Services.Interfaces;
 using SmartMicrogrid.Api.Settings;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -147,8 +149,8 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 // TODO (each member, on their own branch):
 //   builder.Services.AddScoped<DatabaseInitializer>();
-//   builder.Services.AddSingleton<ITokenService, TokenService>();
-//   builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 //   builder.Services.AddScoped<IStationService, StationService>();
 //   builder.Services.AddScoped<IEnergyBookingSlotService, EnergyBookingSlotService>();
 //   builder.Services.AddScoped<IEnergyReservationService, EnergyReservationService>();
