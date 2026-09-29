@@ -149,10 +149,7 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 // TODO (each member, on their own branch):
 //   builder.Services.AddScoped<DatabaseInitializer>();
-// User management
 builder.Services.AddScoped<IUserService, UserService>();
-
-// Login token generation
 builder.Services.AddSingleton<ITokenService, TokenService>();
 //   builder.Services.AddScoped<IStationService, StationService>();
 //   builder.Services.AddScoped<IEnergyBookingSlotService, EnergyBookingSlotService>();
