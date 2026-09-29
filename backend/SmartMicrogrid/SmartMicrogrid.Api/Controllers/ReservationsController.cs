@@ -127,8 +127,6 @@ namespace SmartMicrogrid.Api.Controllers
             return Ok(ToResponse(reservation));
         }
 
-        // TODO: Restore these endpoints when QrTokenRequest is available.
-        /*
         // POST api/reservations/verify-qr - checks a scanned QR code against the server before finalising; staff only.
         [Authorize(Roles = AppRoles.Staff)]
         [HttpPost("verify-qr")]
@@ -146,8 +144,6 @@ namespace SmartMicrogrid.Api.Controllers
             var reservation = await _reservationService.CompleteAsync(request.QrToken, User.GetNic(), cancellationToken);
             return Ok(ToResponse(reservation));
         }
-
-        */
 
         // Returns the prosumer a request is for: prosumers always get themselves, staff must name one.
         private string ResolveProsumerNic(string? requestedNic)
