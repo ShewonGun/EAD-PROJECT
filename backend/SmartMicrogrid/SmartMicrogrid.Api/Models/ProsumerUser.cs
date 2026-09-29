@@ -1,5 +1,5 @@
 /*
- * File: User.cs
+ * File: ProsumerUser.cs
  * Purpose: Represents any system user - Backoffice officers and Grid Operators
  *          (web and mobile) and Solar Prosumers (mobile). The National Identity
  *          Card (NIC) number is the primary key. Maps to the "Users" collection
