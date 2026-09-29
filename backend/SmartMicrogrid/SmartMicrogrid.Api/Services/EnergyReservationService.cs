@@ -60,100 +60,92 @@ namespace SmartMicrogrid.Api.Services
         }
 
         // Searches reservations by prosumer, station, status, completing operator and start-date range, newest first.
-        public /* async */ Task<List<EnergyReservation>> SearchAsync(string? prosumerNic = null, string? stationId = null, ReservationStatus? status = null, string? completedBy = null, DateTime? from = null, DateTime? to = null, CancellationToken cancellationToken = default)
+        public async Task<List<EnergyReservation>> SearchAsync(string? prosumerNic = null, string? stationId = null, ReservationStatus? status = null, string? completedBy = null, DateTime? from = null, DateTime? to = null, CancellationToken cancellationToken = default)
         {
-            // TODO: Restore this body and async when UserService.NormalizeNic is available.
-//             var f = Builders<EnergyReservation>.Filter;
-//             var filter = f.Empty;
-// 
-//             if (!string.IsNullOrWhiteSpace(prosumerNic))
-//                 filter &= f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic));
-// 
-//             if (!string.IsNullOrWhiteSpace(stationId))
-//             {
-//                 if (!ValidationHelper.IsValidObjectId(stationId))
-//                     return [];
-//                 filter &= f.Eq(r => r.StationId, stationId);
-//             }
-// 
-//             if (status.HasValue)
-//                 filter &= f.Eq(r => r.Status, status.Value);
-// 
-//             // Lets a Grid Operator ask for only the transfers they personally finalised.
-//             if (!string.IsNullOrWhiteSpace(completedBy))
-//                 filter &= f.Eq(r => r.CompletedBy, UserService.NormalizeNic(completedBy));
-// 
-//             if (from.HasValue)
-//                 filter &= f.Gte(r => r.ReservationStart, ValidationHelper.ToUtc(from.Value));
-// 
-//             if (to.HasValue)
-//                 filter &= f.Lte(r => r.ReservationStart, ValidationHelper.ToUtc(to.Value));
-// 
-//             return await _reservations.Find(filter)
-//                 .SortByDescending(r => r.ReservationStart)
-//                 .ToListAsync(cancellationToken);
-            throw new NotSupportedException("Temporarily unavailable until UserService.NormalizeNic is implemented.");
+            var f = Builders<EnergyReservation>.Filter;
+            var filter = f.Empty;
+
+            if (!string.IsNullOrWhiteSpace(prosumerNic))
+                filter &= f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic));
+
+            if (!string.IsNullOrWhiteSpace(stationId))
+            {
+                if (!ValidationHelper.IsValidObjectId(stationId))
+                    return [];
+                filter &= f.Eq(r => r.StationId, stationId);
+            }
+
+            if (status.HasValue)
+                filter &= f.Eq(r => r.Status, status.Value);
+
+            // Lets a Grid Operator ask for only the transfers they personally finalised.
+            if (!string.IsNullOrWhiteSpace(completedBy))
+                filter &= f.Eq(r => r.CompletedBy, UserService.NormalizeNic(completedBy));
+
+            if (from.HasValue)
+                filter &= f.Gte(r => r.ReservationStart, ValidationHelper.ToUtc(from.Value));
+
+            if (to.HasValue)
+                filter &= f.Lte(r => r.ReservationStart, ValidationHelper.ToUtc(to.Value));
+
+            return await _reservations.Find(filter)
+                .SortByDescending(r => r.ReservationStart)
+                .ToListAsync(cancellationToken);
         }
 
         // Current and pending bookings for a prosumer: pending or approved and not yet ended, soonest first.
-        public /* async */ Task<List<EnergyReservation>> GetUpcomingAsync(string prosumerNic, CancellationToken cancellationToken = default)
+        public async Task<List<EnergyReservation>> GetUpcomingAsync(string prosumerNic, CancellationToken cancellationToken = default)
         {
-            // TODO: Restore this body and async when UserService.NormalizeNic is available.
-//             var f = Builders<EnergyReservation>.Filter;
-//             var filter = f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic))
-//                 & f.In(r => r.Status, OpenStatuses)
-//                 & f.Gt(r => r.ReservationEnd, DateTime.UtcNow);
-// 
-//             return await _reservations.Find(filter)
-//                 .SortBy(r => r.ReservationStart)
-//                 .ToListAsync(cancellationToken);
-            throw new NotSupportedException("Temporarily unavailable until UserService.NormalizeNic is implemented.");
+            var f = Builders<EnergyReservation>.Filter;
+            var filter = f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic))
+                & f.In(r => r.Status, OpenStatuses)
+                & f.Gt(r => r.ReservationEnd, DateTime.UtcNow);
+
+            return await _reservations.Find(filter)
+                .SortBy(r => r.ReservationStart)
+                .ToListAsync(cancellationToken);
         }
 
         // Booking history for a prosumer: completed, cancelled or already-ended reservations, most recent first.
-        public /* async */ Task<List<EnergyReservation>> GetHistoryAsync(string prosumerNic, CancellationToken cancellationToken = default)
+        public async Task<List<EnergyReservation>> GetHistoryAsync(string prosumerNic, CancellationToken cancellationToken = default)
         {
-            // TODO: Restore this body and async when UserService.NormalizeNic is available.
-//             var f = Builders<EnergyReservation>.Filter;
-//             var filter = f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic))
-//                 & (f.In(r => r.Status, [ReservationStatus.Completed, ReservationStatus.Cancelled])
-//                    | f.Lte(r => r.ReservationEnd, DateTime.UtcNow));
-// 
-//             return await _reservations.Find(filter)
-//                 .SortByDescending(r => r.ReservationStart)
-//                 .ToListAsync(cancellationToken);
-            throw new NotSupportedException("Temporarily unavailable until UserService.NormalizeNic is implemented.");
+            var f = Builders<EnergyReservation>.Filter;
+            var filter = f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic))
+                & (f.In(r => r.Status, [ReservationStatus.Completed, ReservationStatus.Cancelled])
+                   | f.Lte(r => r.ReservationEnd, DateTime.UtcNow));
+
+            return await _reservations.Find(filter)
+                .SortByDescending(r => r.ReservationStart)
+                .ToListAsync(cancellationToken);
         }
 
         // Dashboard counts of pending reservations and approved future reservations,
         // optionally for one prosumer and/or one station.
-        public /* async */ Task<ReservationCountsResponse> GetDashboardCountsAsync(string? prosumerNic = null, string? stationId = null, CancellationToken cancellationToken = default)
+        public async Task<ReservationCountsResponse> GetDashboardCountsAsync(string? prosumerNic = null, string? stationId = null, CancellationToken cancellationToken = default)
         {
-            // TODO: Restore this body and async when UserService.NormalizeNic is available.
-//             var now = DateTime.UtcNow;
-//             var f = Builders<EnergyReservation>.Filter;
-//             var scope = f.Empty;
-// 
-//             if (!string.IsNullOrWhiteSpace(prosumerNic))
-//                 scope &= f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic));
-// 
-//             if (!string.IsNullOrWhiteSpace(stationId))
-//             {
-//                 if (!ValidationHelper.IsValidObjectId(stationId))
-//                     return new ReservationCountsResponse();
-//                 scope &= f.Eq(r => r.StationId, stationId);
-//             }
-// 
-//             var pending = await _reservations.CountDocumentsAsync(
-//                 scope & f.Eq(r => r.Status, ReservationStatus.Pending) & f.Gt(r => r.ReservationEnd, now),
-//                 cancellationToken: cancellationToken);
-// 
-//             var approvedUpcoming = await _reservations.CountDocumentsAsync(
-//                 scope & f.Eq(r => r.Status, ReservationStatus.Approved) & f.Gt(r => r.ReservationStart, now),
-//                 cancellationToken: cancellationToken);
-// 
-//             return new ReservationCountsResponse { Pending = pending, ApprovedUpcoming = approvedUpcoming };
-            throw new NotSupportedException("Temporarily unavailable until UserService.NormalizeNic is implemented.");
+            var now = DateTime.UtcNow;
+            var f = Builders<EnergyReservation>.Filter;
+            var scope = f.Empty;
+
+            if (!string.IsNullOrWhiteSpace(prosumerNic))
+                scope &= f.Eq(r => r.ProsumerNic, UserService.NormalizeNic(prosumerNic));
+
+            if (!string.IsNullOrWhiteSpace(stationId))
+            {
+                if (!ValidationHelper.IsValidObjectId(stationId))
+                    return new ReservationCountsResponse();
+                scope &= f.Eq(r => r.StationId, stationId);
+            }
+
+            var pending = await _reservations.CountDocumentsAsync(
+                scope & f.Eq(r => r.Status, ReservationStatus.Pending) & f.Gt(r => r.ReservationEnd, now),
+                cancellationToken: cancellationToken);
+
+            var approvedUpcoming = await _reservations.CountDocumentsAsync(
+                scope & f.Eq(r => r.Status, ReservationStatus.Approved) & f.Gt(r => r.ReservationStart, now),
+                cancellationToken: cancellationToken);
+
+            return new ReservationCountsResponse { Pending = pending, ApprovedUpcoming = approvedUpcoming };
         }
 
         // Books a slot for a prosumer. Prosumers book for themselves; Backoffice and Grid Operators can book for any prosumer.
@@ -337,26 +329,24 @@ namespace SmartMicrogrid.Api.Services
         }
 
         // Resolves the prosumer a booking is for and checks the actor is allowed to book for them.
-        private /* async */ Task<User> RequireProsumerAsync(string prosumerNic, User actor, CancellationToken cancellationToken)
+        private async Task<User> RequireProsumerAsync(string prosumerNic, User actor, CancellationToken cancellationToken)
         {
-            // TODO: Restore this body and async when UserService.NormalizeNic is available.
-//             var key = UserService.NormalizeNic(prosumerNic);
-// 
-//             if (actor.Role == UserRole.Prosumer && actor.Nic != key)
-//                 throw ServiceException.Forbidden("Prosumers can only make reservations for themselves.");
-// 
-//             var prosumer = actor.Nic == key
-//                 ? actor
-//                 : await _users.GetByNicAsync(key, cancellationToken) ?? throw ServiceException.NotFound("Prosumer not found.");
-// 
-//             if (prosumer.Role != UserRole.Prosumer)
-//                 throw ServiceException.BadRequest("Reservations can only be made for prosumer accounts.");
-// 
-//             if (prosumer.Status is not (AccountStatus.Active or AccountStatus.DeactivationRequested))
-//                 throw ServiceException.Conflict("This prosumer account is not active.");
-// 
-//             return prosumer;
-            throw new NotSupportedException("Temporarily unavailable until UserService.NormalizeNic is implemented.");
+            var key = UserService.NormalizeNic(prosumerNic);
+
+            if (actor.Role == UserRole.Prosumer && actor.Nic != key)
+                throw ServiceException.Forbidden("Prosumers can only make reservations for themselves.");
+
+            var prosumer = actor.Nic == key
+                ? actor
+                : await _users.GetByNicAsync(key, cancellationToken) ?? throw ServiceException.NotFound("Prosumer not found.");
+
+            if (prosumer.Role != UserRole.Prosumer)
+                throw ServiceException.BadRequest("Reservations can only be made for prosumer accounts.");
+
+            if (prosumer.Status is not (AccountStatus.Active or AccountStatus.DeactivationRequested))
+                throw ServiceException.Conflict("This prosumer account is not active.");
+
+            return prosumer;
         }
 
         // Loads a slot and checks it is available, at an active station and starts within the 7-day window.
