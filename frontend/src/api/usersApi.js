@@ -4,14 +4,24 @@
  *          Back-office only except profile editing, and the service enforces
  *          that - notably that a deactivated account can only be brought back
  *          by a Back-office officer.
- * Author:  Mahen Perera
- * Created: 2026-09-25
+ * Author:  <your name>
+ * Created: 2026
  */
 import { apiClient } from './client'
 
 /* GET api/users - users filtered by role, status and a name/NIC/email search. */
 export async function getUsers({ role, status, search } = {}) {
   const { data } = await apiClient.get('/users', { params: { role, status, search } })
+  return data
+}
+
+/*
+ * GET api/users/prosumers/directory - active prosumers' NIC and name, for the
+ * reservation-creation NIC picker. Backoffice and Grid Operator can both call
+ * this even though the full GET api/users list above is Backoffice-only.
+ */
+export async function getProsumerDirectory() {
+  const { data } = await apiClient.get('/users/prosumers/directory')
   return data
 }
 

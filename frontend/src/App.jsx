@@ -1,25 +1,23 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
-// TODO: Restore these imports and routes when the missing files are available.
-// import AppShell from './Components/AppShell'
-// import ProtectedRoute from './Components/ProtectedRoute'
+import AppShell from './Components/AppShell'
+import ProtectedRoute from './Components/ProtectedRoute'
 import Dashboard from './Pages/Dashboard'
-// import Login from './Pages/Login'
-// import PendingActivations from './Pages/PendingActivations'
-// import Profile from './Pages/Profile'
-// TODO: Restore when usersApi exports getProsumerDirectory for ReservationFormModal.
-// import Reservations from './Pages/Reservations'
+import Login from './Pages/Login'
+import PendingActivations from './Pages/PendingActivations'
+import Profile from './Pages/Profile'
+import Reservations from './Pages/Reservations'
 import StationSlots from './Pages/StationSlots'
 import Stations from './Pages/Stations'
 import Users from './Pages/Users'
 import { homeRouteForRole, readSession } from './auth/session'
 
 /** Roles that may reach the day-to-day operational screens. */
-// const STAFF = ['Backoffice', 'GridOperator']
+const STAFF = ['Backoffice', 'GridOperator']
 
 /** Only Back-office officers administer the system. */
-// const BACKOFFICE = ['Backoffice']
+const BACKOFFICE = ['Backoffice']
 
 /*
  * Sends visitors to the right starting page: the home screen for their role
@@ -37,31 +35,28 @@ export default function App() {
       <Routes>
         {/* Public routes. */}
         <Route path="/" element={<LandingRedirect />} />
-        {/* <Route path="/login" element={<Login />} /> */}
-        <Route path="/login" element={<p>Login is temporarily unavailable.</p>} />
+        <Route path="/login" element={<Login />} />
 
         {/* Signed-in routes, framed by the app shell. */}
-        {/* <Route element={<ProtectedRoute roles={STAFF} />}> */}
-        {/* This fallback has no Outlet, so protected pages remain disabled. */}
-        <Route element={<p>Protected pages are temporarily unavailable.</p>}>
-          {/* <Route element={<AppShell />}> */}
+        <Route element={<ProtectedRoute roles={STAFF} />}>
+          <Route element={<AppShell />}>
             {/* Both roles get the same dashboard; it adapts to what they may see. */}
             <Route path="/backoffice" element={<Dashboard />} />
             <Route path="/operator" element={<Dashboard />} />
 
             {/* Any signed-in user may read and edit their own account. */}
-            {/* <Route path="/profile" element={<Profile />} /> */}
+            <Route path="/profile" element={<Profile />} />
 
             <Route path="/stations" element={<Stations />} />
             <Route path="/stations/:id/slots" element={<StationSlots />} />
-            {/* <Route path="/reservations" element={<Reservations />} /> */}
+            <Route path="/reservations" element={<Reservations />} />
 
             {/* Administration - Back-office officers only. */}
-            {/* <Route element={<ProtectedRoute roles={BACKOFFICE} />}> */}
+            <Route element={<ProtectedRoute roles={BACKOFFICE} />}>
               <Route path="/users" element={<Users />} />
-              {/* <Route path="/pending-activations" element={<PendingActivations />} /> */}
-            {/* </Route> */}
-          {/* </Route> */}
+              <Route path="/pending-activations" element={<PendingActivations />} />
+            </Route>
+          </Route>
         </Route>
 
         {/* Prosumers use the mobile app only; Login turns them away before a

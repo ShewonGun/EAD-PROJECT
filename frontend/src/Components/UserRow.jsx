@@ -8,8 +8,8 @@
  *          table falls back to. Both pull from the same user object and the
  *          same handlers, so Users.jsx renders whichever the viewport calls
  *          for without duplicating any logic.
- * Author:  Mahen Perera
- * Created: 2026-09-25
+ * Author:  <your name>
+ * Created: 2026
  */
 import { Button, RowActions, StatusPill, TD, TR } from './PageControls'
 
