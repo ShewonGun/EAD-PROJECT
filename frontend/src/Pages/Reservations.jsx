@@ -1,0 +1,412 @@
+/*
+ * File: Reservations.jsx
+ * Purpose: Energy slot reservation management. Lists power trading bookings
+ *          with filters for status, node, prosumer and date range, and lets
+ *          staff approve a pending booking, edit it or cancel it with a reason.
+ *          The 12-hour notice rule is explained here before the user acts, but
+ *          it is the Web API that enforces it on every request.
+ * Author:  Aseni Thennakoon
+ * Created: 2026-9-29
+ */
+import { useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast'
+
+import { toApiError } from '../api/client'
+import { approveReservation, cancelReservation, searchReservations } from '../api/reservationsApi'
+import { getStations } from '../api/stationsApi'
+import { IconPlus } from '../Components/Icons'
+import {
+  Banner,
+  Button,
+  EmptyState,
+  FilterField,
+  LoadingState,
+  PageHeader,
+  Panel,
+  TableWrap,
+  TH,
+  Toolbar,
+} from '../Components/PageControls'
+import ConfirmDialog from '../Components/ConfirmDialog'
+import Pagination from '../Components/Pagination'
+import { ReservationCard, ReservationRow } from '../Components/ReservationRow'
+import ReservationFormModal from '../Components/ReservationFormModal'
+import usePagination from '../hooks/usePagination'
+import { newestFirst } from '../utils/sorting'
+import { MIN_NOTICE_HOURS, formatDateTime } from '../utils/reservationRules'
+
+/** The statuses the API can return, for the filter control. */
+const STATUSES = ['Pending', 'Approved', 'Completed', 'Cancelled']
+
+const EMPTY_FILTERS = { status: '', stationId: '', prosumerNic: '', from: '', to: '' }
+
+export default function Reservations() {
+  const [reservations, setReservations] = useState([])
+  const [stations, setStations] = useState([])
+  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [applied, setApplied] = useState(EMPTY_FILTERS)
+  const [loading, setLoading] = useState(true)
+  // Only the load failure lives on the page; action outcomes go to a toast.
+  const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState(null)
+  const [cancelling, setCancelling] = useState(null)
+  const [cancelReason, setCancelReason] = useState('')
+  // Which booking the dialog is editing: an id, 'new' to create one, or null.
+  const [editing, setEditing] = useState(null)
+  // Bumped after a save so the list reloads with the change in it.
+  const [reloadToken, setReloadToken] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+
+    /* Loads the node list once, to show node names beside each booking. */
+    async function loadStations() {
+      try {
+        const data = await getStations()
+
+        if (!cancelled) {
+          setStations(data)
+        }
+      } catch {
+        // A failure here only costs the node names; the bookings still load.
+      }
+    }
+
+    loadStations()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    /*
+     * Runs the search with the filters the user applied. Every filter is passed
+     * to the Web API rather than applied in the browser, so the list always
+     * reflects the service's own view of the data.
+     */
+    async function loadReservations() {
+      try {
+        const data = await searchReservations({
+          status: applied.status || undefined,
+          stationId: applied.stationId || undefined,
+          prosumerNic: applied.prosumerNic.trim() || undefined,
+          from: applied.from ? new Date(applied.from) : undefined,
+          to: applied.to ? new Date(applied.to) : undefined,
+        })
+
+        if (!cancelled) {
+          setReservations(data)
+          setError('')
+        }
+      } catch (failure) {
+        if (!cancelled) {
+          setError(toApiError(failure).message)
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadReservations()
+
+    return () => {
+      cancelled = true
+    }
+  }, [applied, reloadToken])
+
+  const stationNames = useMemo(
+    () => new Map(stations.map((station) => [station.id, station.stationName])),
+    [stations],
+  )
+
+  /* Reloads the list and reports what changed after the dialog saves. */
+  function handleSaved(message) {
+    toast.success(message)
+    setReloadToken((current) => current + 1)
+  }
+
+  /* Keeps one filter control in state without running the search yet. */
+  function handleFilterChange(event) {
+    const { name, value } = event.target
+    setFilters((current) => ({ ...current, [name]: value }))
+  }
+
+  /* Runs the search with the current filters. */
+  function handleApplyFilters(event) {
+    event.preventDefault()
+    setApplied(filters)
+  }
+
+  /* Clears every filter and reloads the full list. */
+  function handleClearFilters() {
+    setFilters(EMPTY_FILTERS)
+    setApplied(EMPTY_FILTERS)
+  }
+
+  /*
+   * Approves a pending booking. The API issues the QR token on approval and
+   * refuses anything that is not still pending.
+   */
+  async function handleApprove(reservation) {
+    setBusyId(reservation.id)
+
+    try {
+      const updated = await approveReservation(reservation.id)
+
+      setReservations((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      )
+      toast.success(`Reservation for NIC ${updated.prosumerNic} approved.`)
+    } catch (failure) {
+      toast.error(toApiError(failure).message)
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  /*
+   * Cancels the booking chosen in the dialog. The API applies the 12-hour
+   * notice rule again and its refusal is shown as sent.
+   */
+  async function handleConfirmCancel() {
+    const reservation = cancelling
+
+    setBusyId(reservation.id)
+
+    try {
+      const updated = await cancelReservation(reservation.id, cancelReason.trim() || undefined)
+
+      setReservations((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      )
+      toast.success(`Reservation for NIC ${updated.prosumerNic} cancelled.`)
+      setCancelling(null)
+      setCancelReason('')
+    } catch (failure) {
+      toast.error(toApiError(failure).message)
+      setCancelling(null)
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  // The API sorts bookings by start time; the table shows the newest booking
+  // made at the top, so a reservation just created is the first row.
+  const orderedReservations = useMemo(() => newestFirst(reservations), [reservations])
+
+  // Paged in the browser: no endpoint on the Web API takes a page parameter.
+  const pagination = usePagination(orderedReservations)
+
+  return (
+    <>
+      <PageHeader
+        title="Energy reservations"
+        description={`Power trading bookings. Changes and cancellations need at least ${MIN_NOTICE_HOURS} hours' notice.`}
+      >
+        <Button onClick={() => setEditing('new')}>
+          <IconPlus />
+          New reservation
+        </Button>
+      </PageHeader>
+
+      <Banner tone="error">{error}</Banner>
+
+      {loading ? (
+        <LoadingState label="Loading reservations..." />
+      ) : (
+        <Panel flush>
+          <Toolbar onSubmit={handleApplyFilters}>
+            <FilterField
+              label="Status"
+              as="select"
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              className="sm:w-36"
+            >
+              <option value="">Any status</option>
+              {STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </FilterField>
+
+            <FilterField
+              label="Node"
+              as="select"
+              name="stationId"
+              value={filters.stationId}
+              onChange={handleFilterChange}
+              className="sm:w-44"
+            >
+              <option value="">Any node</option>
+              {stations.map((station) => (
+                <option key={station.id} value={station.id}>
+                  {station.stationName}
+                </option>
+              ))}
+            </FilterField>
+
+            <FilterField
+              label="Prosumer NIC"
+              type="search"
+              name="prosumerNic"
+              value={filters.prosumerNic}
+              onChange={handleFilterChange}
+              placeholder="200012345678"
+              className="sm:w-40"
+            />
+
+            <FilterField
+              label="From"
+              type="date"
+              name="from"
+              value={filters.from}
+              onChange={handleFilterChange}
+              className="sm:w-36"
+            />
+
+            <FilterField
+              label="To"
+              type="date"
+              name="to"
+              value={filters.to}
+              onChange={handleFilterChange}
+              className="sm:w-36"
+            />
+
+            <div className="flex h-9 items-center gap-1.5">
+              <Button type="submit" size="sm">
+                Apply
+              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={handleClearFilters}>
+                Clear
+              </Button>
+            </div>
+
+            <span className="ml-auto flex h-9 items-center text-xs tabular-nums text-slate-400">
+              {reservations.length} bookings
+            </span>
+          </Toolbar>
+
+          {reservations.length === 0 ? (
+            <EmptyState
+              title="No reservations found"
+              description="Nothing matches these filters. Try widening the date range or clearing them."
+            >
+              <Button onClick={() => setEditing('new')}>
+                <IconPlus />
+                New reservation
+              </Button>
+            </EmptyState>
+          ) : (
+            <>
+              {/* Table at "lg" and above; a purpose-built card list below it -
+                  see ReservationRow.jsx for why this page gets its own card
+                  rather than the generic label/value stacking every other
+                  table falls back to. */}
+              <div className="hidden lg:block">
+                <TableWrap minWidth="62rem">
+                  <thead>
+                    <tr>
+                      <TH>Starts</TH>
+                      <TH>Prosumer</TH>
+                      <TH>Type</TH>
+                      <TH align="right">Energy</TH>
+                      <TH>Status</TH>
+                      <TH align="right">Actions</TH>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pagination.pageItems.map((reservation) => (
+                      <ReservationRow
+                        key={reservation.id}
+                        reservation={reservation}
+                        stationName={stationNames.get(reservation.stationId) ?? 'Unknown node'}
+                        busy={busyId === reservation.id}
+                        onApprove={handleApprove}
+                        onCancel={(item) => {
+                          setCancelReason('')
+                          setCancelling(item)
+                        }}
+                        onEdit={(item) => setEditing(item.id)}
+                      />
+                    ))}
+                  </tbody>
+                </TableWrap>
+              </div>
+
+              <div className="grid gap-3 p-4 lg:hidden">
+                {pagination.pageItems.map((reservation) => (
+                  <ReservationCard
+                    key={reservation.id}
+                    reservation={reservation}
+                    stationName={stationNames.get(reservation.stationId) ?? 'Unknown node'}
+                    busy={busyId === reservation.id}
+                    onApprove={handleApprove}
+                    onCancel={(item) => {
+                      setCancelReason('')
+                      setCancelling(item)
+                    }}
+                    onEdit={(item) => setEditing(item.id)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {reservations.length > 0 ? (
+            <Pagination
+              {...pagination}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+              noun="bookings"
+            />
+          ) : null}
+        </Panel>
+      )}
+
+      {cancelling ? (
+        <ConfirmDialog
+          title="Cancel this reservation?"
+          description={`Booking for NIC ${cancelling.prosumerNic} starting ${formatDateTime(
+            cancelling.reservationStart,
+          )}. The battery slot is released back for booking.`}
+          confirmLabel="Cancel reservation"
+          pendingLabel="Cancelling..."
+          cancelLabel="Keep booking"
+          busy={busyId === cancelling.id}
+          onConfirm={handleConfirmCancel}
+          onClose={() => setCancelling(null)}
+        >
+          <label className="block">
+            <span className="text-[11px] font-medium uppercase tracking-[0.07em] text-slate-500">
+              Reason
+            </span>
+            <textarea
+              value={cancelReason}
+              onChange={(event) => setCancelReason(event.target.value)}
+              rows={3}
+              placeholder="Optional - recorded against the cancellation"
+              className="mt-1 w-full rounded-xs border border-slate-300 px-2.5 py-2 text-sm outline-none transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+            />
+          </label>
+        </ConfirmDialog>
+      ) : null}
+
+      {editing ? (
+        <ReservationFormModal
+          reservationId={editing === 'new' ? undefined : editing}
+          onClose={() => setEditing(null)}
+          onSaved={handleSaved}
+        />
+      ) : null}
+    </>
+  )
+}
