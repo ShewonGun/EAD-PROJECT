@@ -3,8 +3,8 @@
  * Purpose: User management endpoints - Backoffice user administration and
  *          pending activations (web), and self-service profile, password and
  *          deactivation requests (mobile). Business rules live in UserService.
- * Author:  Mahen Perera
- * Created: 2026-09-24
+ * Author:   Shewon Gunarathne
+ * Created: 2026-09-23
  */
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +38,17 @@ namespace SmartMicrogrid.Api.Controllers
         {
             var users = await _userService.GetAllAsync(role, status, search, cancellationToken);
             return Ok(users.Select(UserResponse.FromUser));
+        }
+
+        // GET api/users/prosumers/directory - active prosumers' NIC and name, for the reservation-
+        // creation NIC picker; Staff so a Grid Operator can also book on a prosumer's behalf.
+        [Authorize(Roles = AppRoles.Staff)]
+        [HttpGet("prosumers/directory")]
+        public async Task<ActionResult<IEnumerable<ProsumerDirectoryEntry>>> GetProsumerDirectory(
+            [FromQuery] string? search, CancellationToken cancellationToken)
+        {
+            var prosumers = await _userService.GetAllAsync(UserRole.Prosumer, AccountStatus.Active, search, cancellationToken);
+            return Ok(prosumers.Select(ProsumerDirectoryEntry.FromUser));
         }
 
         // GET api/users/pending-activations - prosumer accounts waiting for activation; Backoffice only.
