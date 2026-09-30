@@ -17,7 +17,6 @@ import retrofit2.http.Query
 
 interface SmartGridApi {
 
-    // Prosumer account-control endpoints: NIC registration, profile editing, and deactivation requests.
     /** Authenticates with NIC or e-mail and returns the bearer token plus profile. */
     @POST("auth/login")
     suspend fun login(@Body body: LoginRequest): Response<LoginResponse>

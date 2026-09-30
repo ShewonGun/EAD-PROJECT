@@ -129,10 +129,9 @@ function NavItem({ item, onNavigate }) {
       end={item.end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-center gap-2.5 border-l-2 py-2.5 pl-3.5 pr-3 text-sm transition-colors ${
-          isActive
-            ? 'border-amber-400 bg-slate-800 font-medium text-white'
-            : 'border-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-100'
+        `flex items-center gap-2.5 border-l-2 py-2.5 pl-3.5 pr-3 text-sm transition-colors ${isActive
+          ? 'border-amber-400 bg-slate-800 font-medium text-white'
+          : 'border-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-100'
         }`
       }
     >
@@ -349,11 +348,10 @@ export default function AppShell() {
                 <span key={crumb} className="flex min-w-0 items-center gap-1.5">
                   <IconChevronRight className="hidden h-3.5 w-3.5 shrink-0 text-slate-300 sm:block" />
                   <span
-                    className={`truncate text-sm ${
-                      index === crumbs.length - 1
+                    className={`truncate text-sm ${index === crumbs.length - 1
                         ? 'font-medium text-slate-900'
                         : 'text-slate-400'
-                    }`}
+                      }`}
                     aria-current={index === crumbs.length - 1 ? 'page' : undefined}
                   >
                     {crumb}
@@ -390,18 +388,16 @@ export default function AppShell() {
         <div
           aria-hidden="true"
           onClick={() => setMobileNavOpen(false)}
-          className={`absolute inset-0 bg-slate-900/50 transition-opacity duration-200 ${
-            mobileNavOpen ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`absolute inset-0 bg-slate-900/50 transition-opacity duration-200 ${mobileNavOpen ? 'opacity-100' : 'opacity-0'
+            }`}
         />
 
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Navigation"
-          className={`absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-slate-900 shadow-xl transition-transform duration-200 ${
-            mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-slate-900 shadow-xl transition-transform duration-200 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <SidebarContent
             sections={sections}

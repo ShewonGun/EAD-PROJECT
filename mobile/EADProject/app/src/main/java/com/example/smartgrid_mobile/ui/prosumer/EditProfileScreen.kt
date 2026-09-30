@@ -1,0 +1,191 @@
+/* ============================================================================
+ * File        : EditProfileScreen.kt
+ * Purpose     : Lets a prosumer edit their own profile. The form is seeded from
+ *               the SQLite-cached profile and saved through PUT /users/{nic}.
+ * Author      : SmartGrid Mobile Team
+ * Created     : 2026-09-17
+ * ==========================================================================*/
+package com.example.smartgrid_mobile.ui.prosumer
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.smartgrid_mobile.ui.common.BannerTone
+import com.example.smartgrid_mobile.ui.common.FormField
+import com.example.smartgrid_mobile.ui.common.MessageBanner
+import com.example.smartgrid_mobile.ui.common.PageHeaderCard
+import com.example.smartgrid_mobile.ui.common.PrimaryButton
+import com.example.smartgrid_mobile.ui.common.SectionCard
+import com.example.smartgrid_mobile.ui.common.SectionLabel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileScreen(
+    viewModel: ProsumerViewModel,
+    onSaved: () -> Unit,
+    modifier: Modifier = Modifier,
+    bottomBar: @Composable () -> Unit = {}
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val user by viewModel.user.collectAsStateWithLifecycle()
+
+    var fullName by remember(user?.nic) { mutableStateOf(user?.fullName.orEmpty()) }
+    var email by remember(user?.nic) { mutableStateOf(user?.email.orEmpty()) }
+    var phone by remember(user?.nic) { mutableStateOf(user?.phone.orEmpty()) }
+    var address by remember(user?.nic) { mutableStateOf(user?.address.orEmpty()) }
+    var capacity by remember(user?.nic) {
+        mutableStateOf(user?.solarCapacityKW?.toString().orEmpty())
+    }
+
+    // Returns to the home screen as soon as the API confirms the update.
+    LaunchedEffect(state.actionComplete) {
+        if (state.actionComplete) {
+            viewModel.onActionHandled()
+            onSaved()
+        }
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Edit profile", fontWeight = FontWeight.SemiBold) },
+                // Sits on the page background, matching the other prosumer tabs.
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
+        bottomBar = bottomBar
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(top = 8.dp, bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 440.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                MessageBanner(state.errorMessage, BannerTone.ERROR)
+
+                // ---- Header ----------------------------------------------
+                PageHeaderCard(
+                    icon = Icons.Default.Person,
+                    title = user?.fullName.orEmpty().ifBlank { "My profile" },
+                    subtitle = "NIC ${user?.nic.orEmpty().ifBlank { "-" }}",
+                    // The API keys prosumers on their NIC, so it is read-only here.
+                    footnote = "Your NIC is the account key and cannot be changed."
+                )
+
+                // ---- Contact details -------------------------------------
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SectionLabel("Contact details")
+                    SectionCard {
+                        FormField(
+                            value = fullName,
+                            onValueChange = { fullName = it },
+                            label = "Full name",
+                            enabled = !state.working,
+                            isError = state.fieldErrors.containsKey(ProfileField.FULL_NAME),
+                            supportingText = state.fieldErrors[ProfileField.FULL_NAME],
+                            leadingIcon = Icons.Default.Person
+                        )
+                        FormField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = "Email",
+                            enabled = !state.working,
+                            isError = state.fieldErrors.containsKey(ProfileField.EMAIL),
+                            supportingText = state.fieldErrors[ProfileField.EMAIL],
+                            keyboardType = KeyboardType.Email,
+                            leadingIcon = Icons.Default.Email
+                        )
+                        FormField(
+                            value = phone,
+                            onValueChange = { phone = it },
+                            label = "Phone",
+                            enabled = !state.working,
+                            isError = state.fieldErrors.containsKey(ProfileField.PHONE),
+                            supportingText = state.fieldErrors[ProfileField.PHONE],
+                            keyboardType = KeyboardType.Phone,
+                            leadingIcon = Icons.Default.Phone
+                        )
+                        FormField(
+                            value = address,
+                            onValueChange = { address = it },
+                            label = "Address",
+                            enabled = !state.working,
+                            singleLine = false,
+                            isError = state.fieldErrors.containsKey(ProfileField.ADDRESS),
+                            supportingText = state.fieldErrors[ProfileField.ADDRESS],
+                            leadingIcon = Icons.Default.Home
+                        )
+                    }
+                }
+
+                // ---- Solar installation ----------------------------------
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SectionLabel("Solar installation")
+                    SectionCard {
+                        FormField(
+                            value = capacity,
+                            onValueChange = { capacity = it },
+                            label = "Installed capacity (kW)",
+                            enabled = !state.working,
+                            isError = state.fieldErrors.containsKey(ProfileField.CAPACITY),
+                            supportingText = state.fieldErrors[ProfileField.CAPACITY],
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Done,
+                            leadingIcon = Icons.Default.Bolt
+                        )
+                    }
+                }
+
+                PrimaryButton(
+                    text = "Save changes",
+                    onClick = {
+                        viewModel.saveProfile(fullName, email, phone, address, capacity)
+                    },
+                    loading = state.working
+                )
+            }
+        }
+    }
+}

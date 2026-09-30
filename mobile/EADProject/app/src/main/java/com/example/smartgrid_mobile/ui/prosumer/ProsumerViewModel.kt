@@ -3,8 +3,8 @@
  * Purpose     : Backs the prosumer home, profile-edit, password and account
  *               deactivation screens. Reads the cached SQLite session and
  *               refreshes it from GET /auth/me on every visit.
- * Author      : Mahen Perera
- * Created     : 2026-09-26
+ * Author      : SmartGrid Mobile Team
+ * Created     : 2026-09-17
  * ==========================================================================*/
 package com.example.smartgrid_mobile.ui.prosumer
 
