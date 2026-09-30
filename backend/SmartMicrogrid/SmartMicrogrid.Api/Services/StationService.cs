@@ -30,10 +30,10 @@ namespace SmartMicrogrid.Api.Services
         private readonly IMongoCollection<SolarStationInfo> _stations;
         private readonly IMongoCollection<EnergyBookingSlot> _slots;
         private readonly IMongoCollection<EnergyReservation> _reservations;
-        private readonly IProsumerAccountService _users;
+        private readonly IUserService _users;
 
         // Resolves the station, slot and reservation collections from the shared MongoDB context.
-        public StationService(MongoDbContext context, IProsumerAccountService users)
+        public StationService(MongoDbContext context, IUserService users)
         {
             _stations = context.GetCollection<SolarStationInfo>(CollectionName);
             _slots = context.GetCollection<EnergyBookingSlot>(EnergyBookingSlotService.CollectionName);

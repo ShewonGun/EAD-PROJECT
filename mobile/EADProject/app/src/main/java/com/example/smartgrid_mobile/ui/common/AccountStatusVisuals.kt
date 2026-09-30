@@ -1,5 +1,5 @@
 /* ============================================================================
- * File        : ProsumerAccountStatusVisuals.kt
+ * File        : AccountStatusVisuals.kt
  * Purpose     : Turns the raw account status string sent by the Web API into a
  *               readable label and a colour pair for the status chip.
  * Author      : SmartGrid Mobile Team

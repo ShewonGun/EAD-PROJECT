@@ -12,10 +12,10 @@ package com.example.smartgrid_mobile.data.repository
 import com.example.smartgrid_mobile.data.ApiResult
 import com.example.smartgrid_mobile.data.remote.QrTokenRequest
 import com.example.smartgrid_mobile.data.remote.ReservationDto
-import com.example.smartgrid_mobile.data.remote.ProsumerSmartGridApi
+import com.example.smartgrid_mobile.data.remote.SmartGridApi
 import com.example.smartgrid_mobile.data.remote.StationDto
 
-class OperatorRepository(private val api: ProsumerSmartGridApi) {
+class OperatorRepository(private val api: SmartGridApi) {
 
     /** Checks a scanned token against the service and returns the booking it belongs to. */
     suspend fun verifyQr(qrToken: String): ApiResult<ReservationDto> =

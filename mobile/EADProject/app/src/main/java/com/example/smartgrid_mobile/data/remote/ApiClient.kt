@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
 
     /** Creates the API implementation; the token is read per request, never cached. */
-    fun create(sessionStore: SessionStore): ProsumerSmartGridApi {
+    fun create(sessionStore: SessionStore): SmartGridApi {
         val client = OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -32,7 +32,7 @@ object ApiClient {
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ProsumerSmartGridApi::class.java)
+            .create(SmartGridApi::class.java)
     }
 
     /** Adds the bearer Authorization header whenever a session exists locally. */

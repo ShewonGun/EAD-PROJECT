@@ -18,10 +18,10 @@ namespace SmartMicrogrid.Api.Filters
 {
     public class ActiveAccountFilter : IAsyncActionFilter
     {
-        private readonly IProsumerAccountService _userService;
+        private readonly IUserService _userService;
 
         // Receives the user service that owns the account status rule.
-        public ActiveAccountFilter(IProsumerAccountService userService)
+        public ActiveAccountFilter(IUserService userService)
         {
             _userService = userService;
         }

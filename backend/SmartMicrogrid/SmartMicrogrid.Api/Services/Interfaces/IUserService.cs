@@ -1,5 +1,5 @@
 /*
- * File: IProsumerAccountService.cs
+ * File: IUserService.cs
  * Purpose: Contract for user registration, login, profile management and the
  *          account status workflow. Implemented by UserService.
  * Author:  <your name>
@@ -10,7 +10,7 @@ using SmartMicrogrid.Api.Models.Enums;
 
 namespace SmartMicrogrid.Api.Services.Interfaces
 {
-    public interface IProsumerAccountService
+    public interface IUserService
     {
         // Returns users filtered by role, status and a name/NIC/email search term.
         Task<List<User>> GetAllAsync(UserRole? role = null, AccountStatus? status = null, string? search = null, CancellationToken cancellationToken = default);

@@ -1,5 +1,5 @@
 /* ============================================================================
- * File        : ProsumerSmartGridApi.kt
+ * File        : SmartGridApi.kt
  * Purpose     : Retrofit description of the SmartGrid Web API endpoints used by
  *               the prosumer authentication and account-management screens.
  * Author      : SmartGrid Mobile Team
@@ -15,7 +15,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface ProsumerSmartGridApi {
+interface SmartGridApi {
 
     // Prosumer account-control endpoints: NIC registration, profile editing, and deactivation requests.
     /** Authenticates with NIC or e-mail and returns the bearer token plus profile. */
