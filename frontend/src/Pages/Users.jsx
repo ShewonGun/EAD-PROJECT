@@ -5,8 +5,8 @@
  *          search, and creates, edits, activates and deactivates accounts.
  *          Deactivating a prosumer also cancels the bookings they still hold,
  *          which the confirmation says before the action is taken.
- * Author:  Mahen Perera
- * Created: 2026-09-25
+ * Author:  <your name>
+ * Created: 2026
  */
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
