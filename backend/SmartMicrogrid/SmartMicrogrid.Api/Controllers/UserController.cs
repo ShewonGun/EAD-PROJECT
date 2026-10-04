@@ -3,7 +3,7 @@
  * Purpose: User management endpoints - Backoffice user administration and
  *          pending activations (web), and self-service profile, password and
  *          deactivation requests (mobile). Business rules live in UserService.
- * Author:   Shewon Gunarathne
+ * Author:  Mahen Perera
  * Created: 2026-09-23
  */
 using Microsoft.AspNetCore.Authorization;
