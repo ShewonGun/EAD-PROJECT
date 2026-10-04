@@ -3,10 +3,8 @@
  * Purpose: Application entry point. Loads and validates configuration, and
  *          registers MongoDB, JWT authentication, authorization (signed-in
  *          users only by default), CORS for the web app, consistent error
- *          responses and Swagger. Matches the shape of the real project's
- *          Program.cs; the feature services and DatabaseInitializer are left
- *          for each member to register when they merge their branch (see the
- *          TODO markers below) - none of those classes exist on main yet.
+ *          responses, Swagger and the application services. On startup it
+ *          prepares the database, then runs the HTTP pipeline.
  * Author:  Shewon Gunarathne
  * Created: 2026-09-25
  */
@@ -147,22 +145,20 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoSettings.ConnectionString));
 builder.Services.AddSingleton<MongoDbContext>();
 
-// TODO (each member, on their own branch):
-//   builder.Services.AddScoped<DatabaseInitializer>();
+builder.Services.AddScoped<DatabaseInitializer>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
-//   builder.Services.AddScoped<IStationService, StationService>();
-//   builder.Services.AddScoped<IEnergyBookingSlotService, EnergyBookingSlotService>();
-//   builder.Services.AddScoped<IEnergyReservationService, EnergyReservationService>();
-// Add your own line here when your service exists, and merge - don't remove anyone else's.
+builder.Services.AddScoped<IStationService, StationService>();
+builder.Services.AddScoped<IEnergyBookingSlotService, EnergyBookingSlotService>();
+builder.Services.AddScoped<IEnergyReservationService, EnergyReservationService>();
 
 var app = builder.Build();
 
-// TODO: once DatabaseInitializer exists, re-add the startup block that runs it:
-//   using (var scope = app.Services.CreateScope())
-//   {
-//       await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync();
-//   }
+// Create indexes and the first Backoffice user before accepting requests.
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync();
+}
 
 // HTTP pipeline
 app.UseExceptionHandler();
