@@ -2,26 +2,67 @@
  * File        : ViewModelFactory.kt
  * Purpose     : Builds the view models by hand from the service locator, so the
  *               project stays free of any dependency-injection framework.
- *               Matches the shape of the real project's ViewModelFactory; each
- *               member adds their own `when` branch here when their ViewModel
- *               and its repository exist - none do yet on main.
- * Author      : Shewon Gunarathne
- * Created     : 2026-09-25
+ * Author      : SmartGrid Mobile Team
+ * Created     : 2026-09-17
  * ==========================================================================*/
 package com.example.smartgrid_mobile.core
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.smartgrid_mobile.ui.auth.LoginViewModel
+import com.example.smartgrid_mobile.ui.auth.RegisterViewModel
+import com.example.smartgrid_mobile.ui.booking.BookingSummaryViewModel
+import com.example.smartgrid_mobile.ui.booking.BookingViewModel
+import com.example.smartgrid_mobile.ui.booking.MyBookingsViewModel
+import com.example.smartgrid_mobile.ui.map.NodesMapViewModel
+import com.example.smartgrid_mobile.ui.operator.OperatorHistoryViewModel
+import com.example.smartgrid_mobile.ui.operator.OperatorViewModel
+import com.example.smartgrid_mobile.ui.prosumer.ProsumerViewModel
+import com.example.smartgrid_mobile.ui.qr.TransactionQrViewModel
 
 object AppViewModelFactory : ViewModelProvider.Factory {
 
     /** Maps a view model class onto its constructor, injecting the shared repository. */
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        val repository = ServiceLocator.authRepository
         return when {
-            // TODO (each member, on their own branch), e.g.:
-            //   modelClass.isAssignableFrom(LoginViewModel::class.java) ->
-            //       LoginViewModel(ServiceLocator.authRepository) as T
+            modelClass.isAssignableFrom(LoginViewModel::class.java) ->
+                LoginViewModel(repository) as T
+
+            modelClass.isAssignableFrom(RegisterViewModel::class.java) ->
+                RegisterViewModel(repository) as T
+
+            modelClass.isAssignableFrom(BookingViewModel::class.java) ->
+                BookingViewModel(ServiceLocator.reservationRepository) as T
+
+            modelClass.isAssignableFrom(MyBookingsViewModel::class.java) ->
+                MyBookingsViewModel(ServiceLocator.reservationRepository) as T
+
+            modelClass.isAssignableFrom(BookingSummaryViewModel::class.java) ->
+                BookingSummaryViewModel(ServiceLocator.reservationRepository) as T
+
+            modelClass.isAssignableFrom(OperatorViewModel::class.java) ->
+                OperatorViewModel(ServiceLocator.operatorRepository) as T
+
+            modelClass.isAssignableFrom(OperatorHistoryViewModel::class.java) ->
+                OperatorHistoryViewModel(
+                    ServiceLocator.operatorRepository,
+                    ServiceLocator.sessionStore
+                ) as T
+
+            modelClass.isAssignableFrom(NodesMapViewModel::class.java) ->
+                NodesMapViewModel(
+                    ServiceLocator.reservationRepository,
+                    ServiceLocator.locationProvider
+                ) as T
+
+            modelClass.isAssignableFrom(TransactionQrViewModel::class.java) ->
+                TransactionQrViewModel(ServiceLocator.reservationRepository) as T
+
+            modelClass.isAssignableFrom(ProsumerViewModel::class.java) ->
+                ProsumerViewModel(repository, ServiceLocator.reservationRepository) as T
+
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         }
     }
